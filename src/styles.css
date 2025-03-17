@@ -1,1 +1,22 @@
+
+
 /* You can add global styles to this file, and also import other style files */
+
+
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+.cdk-drop-list-dragging{
+  opacity: 0.5;
+
+  border-left: 5px solid black;
+  padding-left: 8px
+}
+
+mat-dialog-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* Zorgt ervoor dat de inhoud wordt verdeeld */
+  height: 100%;
+}
