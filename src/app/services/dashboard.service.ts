@@ -6,6 +6,8 @@ import { PaymentsComponent } from '../pages/dashboard/widgets/payments.component
 import { PersonalinfoComponent } from '../pages/dashboard/widgets/personalinfo.component';
 import { AnalyticsComponent } from '../pages/dashboard/widgets/analytics.component';
 import { ServerstatusComponent } from '../pages/dashboard/widgets/serverstatus.component';
+import { VisitsComponent } from '../pages/dashboard/widgets/visits.component';
+import { CountdownComponent } from '../pages/dashboard/widgets/countdown.component';
 
 
 
@@ -67,8 +69,27 @@ export class DashboardService {
       content: ServerstatusComponent,
       rows: 3,
       columns: 1,
-    }
+    },
 
+    {
+      id: 7,
+      label: 'Visits',
+      content: VisitsComponent,
+      rows: 2,
+      columns: 1,
+      backgroundColor: '#003f5c',
+      color: 'whitesmoke'
+    },
+
+    {
+      id: 8,
+      label: 'Countdown',
+      content: CountdownComponent,
+      rows: 2,
+      columns: 4,
+            backgroundColor: '#003f5c',
+      color: 'whitesmoke'
+    }
 
   ]);
 

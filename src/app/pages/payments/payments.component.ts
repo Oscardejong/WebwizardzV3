@@ -82,6 +82,12 @@ import { PaymentService, Payment } from '../../services/payment.service';
           {{ payment.status }}
         </td>
       </ng-container>
+      <ng-container matColumnDef="download">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let payment">
+        <a href="#" class="download-link">Download Invoice</a>
+      </td>
+    </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
@@ -89,23 +95,23 @@ import { PaymentService, Payment } from '../../services/payment.service';
     </div>
   `,
   styles: [
-    `
-    .status-icon {
-  font-size: 20px;
-  vertical-align: middle;
-  margin-right: 5px;
-}
+      `
+      .status-icon {
+    font-size: 20px;
+    vertical-align: middle;
+    margin-right: 5px;
+  }
 
-.completed {
-  color: green;
-}
+  .completed {
+    color: green;
+  }
 
-.pending {
-  color: orange;
-}
+  .pending {
+    color: orange;
+  }
 
-.failed {
-  color: red;
+  .failed {
+    color: red;
 }
       .search-container {
         width: 1000px;
@@ -131,7 +137,7 @@ export class PaymentsComponent implements OnInit {
   payments: Payment[] = [];
   searchQuery: string = '';
   displayedColumns: string[] = [
-    'firstName', 'lastName', 'email', 'amount', 'paymentMethod', 'paymentDate', 'status'
+    'firstName', 'lastName', 'email', 'amount', 'paymentMethod', 'paymentDate', 'status', 'download'
   ];
 
   constructor(private paymentService: PaymentService) {}
