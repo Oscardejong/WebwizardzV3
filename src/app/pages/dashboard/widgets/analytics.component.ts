@@ -4,7 +4,7 @@ import Chart from 'chart.js/auto';
 
 @Component({
   selector: 'app-analytics',
-  standalone: true,
+  // standalone: true,
   imports: [MatButtonModule],
   template: `
     <div class="chart-container">

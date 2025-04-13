@@ -3,7 +3,8 @@ import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { DomainComponent } from './pages/domain/domain.component';
 import { PaymentsComponent } from './pages/payments/payments.component';
 import { AccountComponent } from './pages/account/account.component';
-import { AnalyticsComponent } from './pages/analytics/analytics.component';
+
+import { WebsitesComponent } from './pages/websites/websites.component';
 
 
 export const routes: Routes = [
@@ -34,9 +35,8 @@ export const routes: Routes = [
     },
 
     {
-        path: 'analytics',
-        component: AnalyticsComponent
+        path: 'websites',
+        component: WebsitesComponent
     },
-
 
 ];

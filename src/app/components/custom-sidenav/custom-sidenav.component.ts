@@ -142,12 +142,13 @@ export class CustomSidenavComponent {
 
     },
 
-    {
-      icon: 'analytics',
-      label: 'Analytics',
-      route: 'analytics',
+   {
+      icon: 'web',
+      label: 'Websites',
+      route: 'websites',
 
     },
+
 
   ]);
 

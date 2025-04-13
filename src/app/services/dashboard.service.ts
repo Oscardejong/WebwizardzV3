@@ -8,9 +8,9 @@ import { AnalyticsComponent } from '../pages/dashboard/widgets/analytics.compone
 import { ServerstatusComponent } from '../pages/dashboard/widgets/serverstatus.component';
 import { VisitsComponent } from '../pages/dashboard/widgets/visits.component';
 import { CountdownComponent } from '../pages/dashboard/widgets/countdown.component';
-
-
-
+import { StatisticsVisitsComponent } from '../pages/dashboard/widgets/statistics-visits.component';
+import { StatisticsVisitsTwoComponent } from '../pages/dashboard/widgets/statistics-visits-two.component';
+import { StatisticsVisitsThreeComponent } from '../pages/dashboard/widgets/statistics-visits-three.component';
 @Injectable({
   providedIn: 'root'
 })
@@ -89,6 +89,29 @@ export class DashboardService {
       columns: 4,
             backgroundColor: '#003f5c',
       color: 'whitesmoke'
+    },
+    {
+      id: 9,
+      label: 'Website visits',
+      content: StatisticsVisitsComponent,
+      rows: 4,
+      columns: 4,
+
+    },
+    {
+      id: 10,
+      label: 'Website visits',
+      content: StatisticsVisitsTwoComponent,
+      rows: 4,
+      columns: 4,
+
+    },
+    {
+      id: 11,
+      label: 'Website visits',
+      content: StatisticsVisitsThreeComponent,
+      rows: 4,
+      columns: 4,
     }
 
   ]);

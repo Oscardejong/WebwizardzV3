@@ -47,10 +47,15 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     <div class="table-container">
       <table mat-table [dataSource]="filterDomains()" class="mat-elevation-z8">
 
-        <ng-container matColumnDef="domainName">
-          <th mat-header-cell *matHeaderCellDef> Domain </th>
-          <td mat-cell *matCellDef="let domain">{{ domain.domainName }}</td>
-        </ng-container>
+      <ng-container matColumnDef="domainName">
+  <th mat-header-cell *matHeaderCellDef> Domain </th>
+  <td mat-cell *matCellDef="let domain">
+    <a *ngIf="domain.domainName" [href]="domain.domainName" target="_blank" rel="noopener" class="url-link">
+      {{ domain.domainName }}
+    </a>
+    <span *ngIf="!domain.domainName">No URL available</span>
+  </td>
+</ng-container>
 
         <ng-container matColumnDef="userName">
           <th mat-header-cell *matHeaderCellDef> Username </th>
@@ -96,6 +101,11 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   `,
   styles: [
     `
+    .url-link {
+  color: #1976d2;
+  text-decoration: underline;
+  cursor: pointer;
+}
       .action-icon-edit {
         color: #1976d2;
       }

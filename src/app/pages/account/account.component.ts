@@ -67,7 +67,9 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 
       <ng-container matColumnDef="gender">
         <th mat-header-cell *matHeaderCellDef> Gender </th>
-        <td mat-cell *matCellDef="let element">{{ element.gender }}</td>
+        <td mat-cell *matCellDef="let element">
+  {{ element.gender === 'm' ? 'Male' : element.gender === 'f' ? 'Female' : element.gender }}
+</td>
       </ng-container>
 
       <ng-container matColumnDef="accountType">
@@ -157,16 +159,29 @@ constructor(
 ) {}
 
 ngOnInit(): void {
-  this.accounts = this.accountService.addedAccounts;
+  this.accountService.getAllAccountsWithCustomer().subscribe((data) => {
+    this.accounts = data;
+  });
 }
 
 OpenAddEditEmployeeForm(account?: Account) {
-  this._dialog.open(EditEmployeeFormComponent, {
+  const dialogRef = this._dialog.open(EditEmployeeFormComponent, {
     width: '1000px',
     height: '600px',
     data: account || {},
   });
+
+  
+  dialogRef.afterClosed().subscribe(result => {
+    if (result) {
+      // Haal de accounts opnieuw op na het sluiten van de dialoog
+      this.accountService.getAllAccountsWithCustomer().subscribe((data) => {
+        this.accounts = data;
+      });
+    }
+  });
 }
+
 
 filterAccounts() {
   if (this.searchQuery) {
@@ -182,24 +197,29 @@ filterAccounts() {
 openDeleteDialog(account: Account): void {
   const dialogRef = this._dialog.open(ConfirmDeleteDialogComponent, {
     width: '400px',
-    data: { name: account.username } // Pass account username for confirmation message
+    data: { name: account.username } 
   });
 
   dialogRef.afterClosed().subscribe(result => {
     if (result) {
-      this.deleteItem(account); // Delete item if confirmed
+      this.deleteItem(account); 
     } else {
       this.snackBar.open('Verwijdering geannuleerd', 'OK', { duration: 2000 });
     }
   });
 }
 
-// Delete the account from the list
 deleteItem(account: Account): void {
-  const index = this.accounts.findIndex(acc => acc === account);
-  if (index > -1) {
-    this.accounts.splice(index, 1); // Remove the account from the list
-    this.snackBar.open(`${account.username} is verwijderd`, 'OK', { duration: 2000 });
-  }
+  this.accountService.deleteAccount(account.username).subscribe({
+    next: () => {
+      // Verwijder lokaal na succesvolle backend-verwijdering
+      this.accounts = this.accounts.filter(acc => acc.username !== account.username);
+      this.snackBar.open(`${account.username} has been deleted`, 'OK', { duration: 3000 });
+    },
+    error: (error) => {
+      console.error('Error deleting account:', error);
+      this.snackBar.open(`Failed to delete ${account.username}`, 'OK', { duration: 3000 });
+    }
+  });
 }
 }
