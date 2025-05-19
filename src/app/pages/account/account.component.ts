@@ -36,6 +36,11 @@ import { MatSnackBar } from '@angular/material/snack-bar';
       <mat-icon>add_circle</mat-icon>
       Add account
     </button>
+    <button mat-raised-button color="accent" style="margin-left: 10px;" (click)="refreshAccounts()">
+    <mat-icon>refresh</mat-icon>
+    Refresh
+  </button>
+    
   </div> 
 
   <div class="table-container"> 
@@ -168,7 +173,13 @@ OpenAddEditEmployeeForm(account?: Account) {
   const dialogRef = this._dialog.open(EditEmployeeFormComponent, {
     width: '1000px',
     height: '600px',
-    data: account || {},
+    data: {
+      mode: account ? 'edit' : 'create', 
+      account: account,
+      username: account?.username
+    }
+
+    
   });
 
   
@@ -208,6 +219,20 @@ openDeleteDialog(account: Account): void {
     }
   });
 }
+
+refreshAccounts() {
+  this.accountService.getAllAccountsWithCustomer().subscribe({
+    next: (data) => {
+      this.accounts = data;
+      this.snackBar.open('Accounts list refreshed', 'OK', { duration: 2000 });
+    },
+    error: (error) => {
+      console.error('Error refreshing accounts:', error);
+      this.snackBar.open('Failed to refresh accounts', 'OK', { duration: 3000 });
+    }
+  });
+}
+
 
 deleteItem(account: Account): void {
   this.accountService.deleteAccount(account.username).subscribe({

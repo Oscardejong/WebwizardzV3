@@ -10,7 +10,9 @@ import { MatStepperModule } from '@angular/material/stepper';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { trigger, transition, style, animate } from '@angular/animations';
-import { WebsiteService, Website } from '../../services/website.service';
+import { WebsiteService } from '../../services/website.service';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { DomainService } from '../../services/domain.service';
 
 @Component({
   selector: 'app-edit-websites',
@@ -25,24 +27,39 @@ import { WebsiteService, Website } from '../../services/website.service';
     MatSelectModule,
     MatStepperModule,
     MatIconModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    MatAutocompleteModule
   ],
   template: `
   <mat-horizontal-stepper [(selectedIndex)]="selectedStep" color="primary" [@stepTransition]="selectedStep">
-    
+
     <!-- Step 1: Name and Domain -->
     <mat-step [label]="'Basic Info'">
+      <div mat-dialog-title>
+        <h1>Select domain</h1>
+      </div>
       <div mat-dialog-content class="content">
         <mat-form-field appearance="fill" class="full-width">
           <mat-label>Website Name</mat-label>
-          <input matInput [(ngModel)]="website.name" placeholder="e.g. Ticket Wizard" name="name">
+          <input matInput [(ngModel)]="website.name" name="name" required>
+          <mat-error *ngIf="!website.name">Website name is required.</mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="fill" class="full-width">
           <mat-label>Select Domain</mat-label>
-          <mat-select [(ngModel)]="website.domain" name="domain">
-            <mat-option *ngFor="let site of domains" [value]="site.domain">{{ site.domain }}</mat-option>
-          </mat-select>
+          <input type="text"
+                 matInput
+                 [(ngModel)]="website.domainname"
+                 (ngModelChange)="filterDomains($event)"
+                 [matAutocomplete]="auto"
+                 name="domainname"
+                 required>
+          <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayDomain">
+            <mat-option *ngFor="let domain of filteredDomainNames" [value]="domain">
+              {{ domain }}
+            </mat-option>
+          </mat-autocomplete>
+          <mat-error *ngIf="!website.domainname">Domain is required.</mat-error>
         </mat-form-field>
       </div>
       <div mat-dialog-actions class="actions">
@@ -52,20 +69,26 @@ import { WebsiteService, Website } from '../../services/website.service';
 
     <!-- Step 2: Type selection -->
     <mat-step [label]="'Type'">
+      <div mat-dialog-title>
+        <h1>Select type</h1>
+      </div>
       <div mat-dialog-content class="content type-selection">
-        <div class="type-option" 
-             [class.selected]="website.websitetype === 'poster'" 
-             (click)="selectType('poster')">
+        <div class="type-option"
+             [class.selected]="website.websitetype === 'Poster'"
+             (click)="selectType('Poster')">
           <mat-icon class="type-icon">photo</mat-icon>
           <span>Poster</span>
         </div>
 
-        <div class="type-option" 
-             [class.selected]="website.websitetype === 'ticket'" 
-             (click)="selectType('ticket')">
+        <div class="type-option"
+             [class.selected]="website.websitetype === 'Ticket'"
+             (click)="selectType('Ticket')">
           <mat-icon class="type-icon">confirmation_number</mat-icon>
           <span>Ticket</span>
         </div>
+      </div>
+      <div mat-dialog-content *ngIf="!website.websitetype" style="padding-left: 20px; padding-top: 10px;">
+        <mat-error>Please select a website type.</mat-error>
       </div>
       <div mat-dialog-actions class="actions">
         <button mat-button matStepperPrevious>Back</button>
@@ -75,6 +98,9 @@ import { WebsiteService, Website } from '../../services/website.service';
 
     <!-- Step 3: File Upload -->
     <mat-step [label]="'Upload'">
+      <div mat-dialog-title>
+        <h1>Upload file</h1>
+      </div>
       <div mat-dialog-content class="content">
         <input type="file" (change)="handleFileInput($event)">
         <p *ngIf="uploadedFile">Selected file: {{ uploadedFile.name }}</p>
@@ -89,7 +115,7 @@ import { WebsiteService, Website } from '../../services/website.service';
     <mat-step [label]="'Review'">
       <div mat-dialog-content class="content">
         <p><strong>Name:</strong> {{ website.name }}</p>
-        <p><strong>Domain:</strong> {{ website.domain }}</p>
+        <p><strong>Domain:</strong> {{ website.domainname }}</p>
         <p><strong>Type:</strong> {{ website.websitetype || 'Not selected' }}</p>
         <p><strong>File:</strong> {{ uploadedFile?.name || 'No file uploaded' }}</p>
       </div>
@@ -103,7 +129,7 @@ import { WebsiteService, Website } from '../../services/website.service';
   `,
   styles: [`
 .full-width {
-  width: 75%; /* Compact */
+  width: 75%;
   max-width: 600px;
 }
 
@@ -112,7 +138,7 @@ import { WebsiteService, Website } from '../../services/website.service';
   flex-direction: column;
   gap: 20px;
   padding-top: 30px;
-  padding-left: 20px; /* Links uitlijnen */
+  padding-left: 20px;
 }
 
 .type-selection {
@@ -120,7 +146,7 @@ import { WebsiteService, Website } from '../../services/website.service';
   flex-direction: row;
   gap: 40px;
   padding-top: 30px;
-  padding-left: 20px; /* Links uitlijnen */
+  padding-left: 20px;
 }
 
 .type-option {
@@ -157,8 +183,6 @@ import { WebsiteService, Website } from '../../services/website.service';
   gap: 10px;
   width: 100%;
 }
-
-
   `],
   animations: [
     trigger('stepTransition', [
@@ -175,26 +199,41 @@ import { WebsiteService, Website } from '../../services/website.service';
 })
 export class EditWebsitesComponent {
   selectedStep = 0;
-  domains: Website[] = [];
   uploadedFile: File | null = null;
+  domainNames: string[] = [];
+  filteredDomainNames: string[] = [];
 
   website: any = {
     name: '',
-    domain: '',
+    domainname: '',
     websitetype: '',
-    status: 'active',
-    visits: 0
+    status: 'Active',
   };
 
   constructor(
     private dialogRef: MatDialogRef<EditWebsitesComponent>,
     private websiteService: WebsiteService,
+    private domainService: DomainService,
     @Inject(MAT_DIALOG_DATA) public data: any
-  ) {
-    this.domains = this.websiteService.addedWebsites;
+  ) {}
+
+  ngOnInit() {
+    this.domainService.getAllDomains().subscribe(domains => {
+      this.domainNames = domains.map(d => d.domainname);
+      this.filteredDomainNames = this.domainNames;
+    });
   }
 
-  selectType(type: 'poster' | 'ticket') {
+  filterDomains(value: string) {
+    const filterValue = value.toLowerCase();
+    this.filteredDomainNames = this.domainNames.filter(d => d.toLowerCase().includes(filterValue));
+  }
+
+  displayDomain(domain: string): string {
+    return domain || '';
+  }
+
+  selectType(type: 'Poster' | 'Ticket') {
     this.website.websitetype = type;
   }
 
@@ -204,12 +243,31 @@ export class EditWebsitesComponent {
   }
 
   isFormValid(): boolean {
-    return !!(this.website.name && this.website.domain && this.website.websitetype);
+    return !!(this.website.name && this.website.domainname && this.website.websitetype);
   }
 
   saveWebsite() {
-    console.log('Website data:', this.website);
-    console.log('Uploaded file:', this.uploadedFile);
-    this.dialogRef.close(this.website);
-  }
+  if (!this.isFormValid()) return;
+
+  const payload = {
+    fields: {
+      name: this.website.name,
+      type: this.website.websitetype,
+      status: this.website.status,
+      domainname: this.website.domainname, 
+    },
+    file: this.uploadedFile || undefined
+  };
+
+  this.websiteService.createWebsite(payload).subscribe({
+    next: (createdWebsite) => {
+      console.log('Website successfully created:', createdWebsite);
+      this.dialogRef.close(createdWebsite);
+    },
+    error: (error) => {
+      console.error('Error creating website:', error);
+    }
+  });
+}
+
 }

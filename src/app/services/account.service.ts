@@ -1,14 +1,16 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';  // 'of' importeren om nepdata te simuleren
+import { BehaviorSubject, Observable, of } from 'rxjs';  // 'of' importeren om nepdata te simuleren
 import { catchError, tap } from 'rxjs/operators';  
 import { throwError } from 'rxjs';  
+import { environment } from '../../environments/environment';
+
 
 export interface Account {
   firstName: string;
   lastName: string;
   email: string;
-  birthdate: string;
+  birthDate: string;
   gender: 'male' | 'female';
   accounttype: 'admin' | 'user';
   username: string;
@@ -20,9 +22,10 @@ export interface Account {
   providedIn: 'root'
 })
 export class AccountService {
-  private apiUrl = 'http://localhost:3000/api/account'; 
-  private accountCustomerUrl = 'http://localhost:3000/api/account-customer';
-  private accountDeleteUrl = 'http://localhost:3000/api/account/:username';
+private apiUrl = `${environment.apiBaseUrl}/api/account`; 
+private accountCustomerUrl = `${environment.apiBaseUrl}/api/account-customer`;
+
+private accountDeleteUrl = `${environment.apiBaseUrl}/api/account/:username`;
 
   addedAccounts: Account[] = [
   ];
@@ -56,6 +59,22 @@ export class AccountService {
       })
     );
   }
+
+  updateAccount(username: string, updatedAccount: Partial<Account>): Observable<any> {
+    const url = `${this.apiUrl}/${encodeURIComponent(username)}`;
+    console.log(`Sending PUT request to: ${url}`, updatedAccount);
+  
+    return this.http.put(url, updatedAccount).pipe(
+      tap(response => {
+        console.log(`Account '${username}' successfully updated:`, response);
+      }),
+      catchError(error => {
+        console.error(`Error updating account '${username}':`, error);
+        return throwError(() => error);
+      })
+    );
+  }
+  
 
   deleteAccount(username: string): Observable<any> {
     const url = `${this.apiUrl}/${encodeURIComponent(username)}`;

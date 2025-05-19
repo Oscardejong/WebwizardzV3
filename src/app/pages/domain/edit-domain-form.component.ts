@@ -15,6 +15,8 @@ import { ScrollingModule } from '@angular/cdk/scrolling';
 import { FormsModule } from '@angular/forms';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { AccountService } from '../../services/account.service';
+import { DomainService } from '../../services/domain.service';
+import { MatDialogRef } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-edit-domain-form',
@@ -135,7 +137,7 @@ import { AccountService } from '../../services/account.service';
   </div>
   <div mat-dialog-actions class="actions">
     <button mat-button matStepperPrevious>Back</button>
-    <button mat-raised-button color="primary" [disabled]="!isFormValid()">Save</button>
+    <button mat-raised-button color="primary" [disabled]="!isFormValid()" (click)="saveDomain()">Save</button>
   </div>
 </mat-step>
     </mat-horizontal-stepper>
@@ -172,7 +174,11 @@ export class EditDomainFormComponent {
   domainLock: boolean = false;
   domainPrivacy: boolean = false;
 
-  constructor(private accountService: AccountService) {}
+  constructor(
+    private accountService: AccountService,
+    private domainService: DomainService,
+    private dialogRef: MatDialogRef<EditDomainFormComponent>  // MatDialogRef toevoegen
+  ) {}
 
   ngOnInit() {
     this.userList = this.accountService.addedAccounts.map(account => account.username);
@@ -206,4 +212,48 @@ export class EditDomainFormComponent {
   displayUsername(user: string): string {
     return user || '';
   }
+
+  saveDomain(): void {
+    if (!this.isFormValid()) {
+      return; // Als het formulier niet geldig is, stoppen we hier
+    }
+
+   const fullDomainName = `${this.domainName}.webwizardz.com`;
+
+  const domainData = {
+    domainname: fullDomainName.trim(), // De volledige domeinnaam
+    domainstatus: 'ONLINE',
+    startdatetime: this.startDate ? this.formatDate(this.startDate, this.startTime) : '',
+    enddatetime: this.endDate ? this.formatDate(this.endDate, this.endTime) : '',
+    username: this.selectedUsername || '',
+     
+  };
+
+    // Roep de createDomain methode van de DomainService aan
+    this.domainService.createDomain(domainData).subscribe({
+      next: (response) => {
+        console.log('Domain saved:', response);  // Log succes in de console
+        this.dialogRef.close();  // Sluit de dialoog na succesvolle opslag
+      },
+      error: (error) => {
+        console.error('Error saving domain:', error);  // Log eventuele fouten
+        // Je kunt hier eventueel een gebruikersvriendelijke foutmelding tonen.
+      }
+    });
+  }
+
+
+ formatDate(date: Date, time: string): string {
+  const d = new Date(date);
+  if (isNaN(d.getTime()) || !time) return ''; // Ongeldige invoer
+
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+
+  // Verwacht tijdformaat is "HH:mm"
+  return `${year}-${month}-${day}T${time}`;
+}
+
+  
 }

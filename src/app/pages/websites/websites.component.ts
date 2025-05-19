@@ -85,9 +85,6 @@ import { MatSnackBar } from '@angular/material/snack-bar';
         <ng-container matColumnDef="action">
           <th mat-header-cell *matHeaderCellDef></th>
           <td mat-cell *matCellDef="let website">
-            <button mat-button class="action-button" (click)="OpeneditWebsitesForm()">
-              <mat-icon class="action-icon-edit">edit</mat-icon>
-            </button>
             <button mat-button class="action-button" (click)="openDeleteDialog(website)">
               <mat-icon class="action-icon-delete">delete</mat-icon>
             </button>
@@ -206,7 +203,7 @@ export class WebsitesComponent implements OnInit {
     if (this.searchQuery) {
       return this.websites.filter(site =>
         site.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        site.domain.toLowerCase().includes(this.searchQuery.toLowerCase())
+        site.domainname.toLowerCase().includes(this.searchQuery.toLowerCase())
       );
     }
     return this.websites;

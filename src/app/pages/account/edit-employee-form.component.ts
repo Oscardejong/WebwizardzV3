@@ -176,13 +176,16 @@ import { AccountService } from '../../services/account.service';
 export class EditEmployeeFormComponent {
   selectedStep: number = 0;
   account: any;
+  mode: 'edit' | 'create' = 'create';
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any, 
     private dialogRef: MatDialogRef<EditEmployeeFormComponent>, // Inject MatDialogRef
     private accountService: AccountService
   ) {
-    this.account = data ? { ...data } : this.createEmptyAccount();
+    this.account = data?.account ? { ...data.account } : this.createEmptyAccount(); // laad bestaand account of leeg formulier
+  this.mode = data?.mode || 'create'; 
+
   }
 
   createEmptyAccount() {
@@ -205,22 +208,26 @@ export class EditEmployeeFormComponent {
   }
 
   saveAccount(): void {
-    if (this.isFormValid()) {
-      // Zet de geboortedatum om naar een gestandaardiseerd formaat (YYYY-MM-DD)
-      this.account.birthdate = this.formatDate(this.account.birthdate);
+    if (!this.isFormValid()) return;
   
-      this.accountService.createAccount(this.account).subscribe(
-        (response) => {
-          console.log('Account saved successfully:', response);
-          this.dialogRef.close(true);  // Sluit het dialoogvenster met true als het account succesvol is opgeslagen
-        },
-        (error) => {
-          console.error('Error saving account:', error);
-          this.dialogRef.close(false);  // Sluit het dialoogvenster met false als er een fout is
-        }
-      );
-    }
+    this.account.birthdate = this.formatDate(this.account.birthdate);
+  
+    const request$ = this.mode === 'edit'
+      ? this.accountService.updateAccount(this.account.id, this.account)
+      : this.accountService.createAccount(this.account);
+  
+    request$.subscribe({
+      next: (response) => {
+        console.log('Success:', response);
+        this.dialogRef.close(true);
+      },
+      error: (err) => {
+        console.error('Error:', err);
+        this.dialogRef.close(false);
+      }
+    });
   }
+  
   
   formatDate(date: any): string {
     const d = new Date(date);
