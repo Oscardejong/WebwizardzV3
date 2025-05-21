@@ -200,7 +200,7 @@ export class EditDomainFormComponent {
   }
 
   updateFullDomainName(): void {
-    this.fullDomainName = `${this.domainName}.webwizardz.com`;
+    this.fullDomainName = `${this.domainName}.webwizardz.nl`;
   }
 
   filteredUsers(): string[] {
