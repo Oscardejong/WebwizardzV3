@@ -5,6 +5,7 @@ import { PaymentsComponent } from './pages/payments/payments.component';
 import { AccountComponent } from './pages/account/account.component';
 
 import { WebsitesComponent } from './pages/websites/websites.component';
+import { PrivacyPolicyComponent } from './pages/privacy-policy.component';
 
 
 export const routes: Routes = [
@@ -37,6 +38,11 @@ export const routes: Routes = [
     {
         path: 'websites',
         component: WebsitesComponent
+    },
+
+     {
+        path: 'privacybeleid',
+        component: PrivacyPolicyComponent
     },
 
 ];

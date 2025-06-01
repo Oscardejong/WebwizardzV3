@@ -61,6 +61,20 @@ private domainDeleteUrl = `${environment.apiBaseUrl}/api/domain/:domainName`;
         })
       );
   }
+// Voeg dit toe aan je DomainService
+
+updateDomain(domainName: string, updatedDomain: Domain): Observable<any> {
+  const url = `${this.apiUrl}/${encodeURIComponent(domainName)}`;
+  console.log(`[DomainService] updateDomain: sending PUT to ${url}`, updatedDomain);
+  
+  return this.http.put(url, updatedDomain).pipe(
+    tap(response => console.log('[DomainService] updateDomain: response', response)),
+    catchError(error => {
+      console.error('[DomainService] updateDomain: error', error);
+      return throwError(() => error);
+    })
+  );
+}
 
   // Verwijder een domein op basis van de domeinnaam via een DELETE-aanroep
   deleteDomain(domainName: string): Observable<any> {

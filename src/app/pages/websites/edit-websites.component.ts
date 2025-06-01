@@ -119,10 +119,14 @@ import { DomainService } from '../../services/domain.service';
         <p><strong>Type:</strong> {{ website.websitetype || 'Not selected' }}</p>
         <p><strong>File:</strong> {{ uploadedFile?.name || 'No file uploaded' }}</p>
       </div>
+            <div *ngIf="errorMessage" style="color:red; margin-bottom: 12px;">
+        {{ errorMessage }}
+      </div>
       <div mat-dialog-actions class="actions">
         <button mat-button matStepperPrevious>Back</button>
         <button mat-raised-button color="primary" (click)="saveWebsite()" [disabled]="!isFormValid()">Save</button>
       </div>
+
     </mat-step>
 
   </mat-horizontal-stepper>
@@ -202,6 +206,7 @@ export class EditWebsitesComponent {
   uploadedFile: File | null = null;
   domainNames: string[] = [];
   filteredDomainNames: string[] = [];
+  errorMessage: string = '';
 
   website: any = {
     name: '',
@@ -247,27 +252,33 @@ export class EditWebsitesComponent {
   }
 
   saveWebsite() {
-  if (!this.isFormValid()) return;
+    if (!this.isFormValid()) return;
 
-  const payload = {
-    fields: {
-      name: this.website.name,
-      type: this.website.websitetype,
-      status: this.website.status,
-      domainname: this.website.domainname, 
-    },
-    file: this.uploadedFile || undefined
-  };
+    this.errorMessage = '';
 
-  this.websiteService.createWebsite(payload).subscribe({
-    next: (createdWebsite) => {
-      console.log('Website successfully created:', createdWebsite);
-      this.dialogRef.close(createdWebsite);
-    },
-    error: (error) => {
-      console.error('Error creating website:', error);
-    }
-  });
-}
+    const payload = {
+      fields: {
+        name: this.website.name,
+        type: this.website.websitetype,
+        status: this.website.status,
+        domainname: this.website.domainname,
+      },
+      file: this.uploadedFile || undefined
+    };
 
+    this.websiteService.createWebsite(payload).subscribe({
+      next: (createdWebsite) => {
+        console.log('Website successfully created:', createdWebsite);
+        this.dialogRef.close(createdWebsite);
+      },
+      error: (error) => {
+        console.error('Error creating website:', error);
+        if (error.error && error.error.message) {
+          this.errorMessage = error.error.message;
+        } else {
+          this.errorMessage = 'Er is een onbekende fout opgetreden.';
+        }
+      }
+    });
+  }
 }

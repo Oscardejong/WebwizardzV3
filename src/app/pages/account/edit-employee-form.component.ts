@@ -11,7 +11,8 @@ import { MatStepperModule } from '@angular/material/stepper';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { trigger, transition, style, animate } from '@angular/animations'; // Import animaties
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { trigger, transition, style, animate } from '@angular/animations';
 import { AccountService } from '../../services/account.service';
 
 @Component({
@@ -19,12 +20,13 @@ import { AccountService } from '../../services/account.service';
   standalone: true,
   imports: [
     CommonModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatDatepickerModule,
-    MatNativeDateModule, MatRadioModule, MatIconModule, MatStepperModule, MatTooltipModule, FormsModule
+    MatNativeDateModule, MatRadioModule, MatIconModule, MatStepperModule, MatTooltipModule, FormsModule,
+    MatCheckboxModule
   ],
   template: `
   <mat-horizontal-stepper [(selectedIndex)]="selectedStep" color="primary" [@horizontalStepTransition]="selectedStep">
-    
-    <!-- Eerste stap: Personal Information -->
+
+    <!-- Stap 1: Personal Information -->
     <mat-step [label]="'Personal Information'">
       <div mat-dialog-title>
         <h1>Personal</h1>
@@ -71,7 +73,7 @@ import { AccountService } from '../../services/account.service';
       </div>
     </mat-step>
 
-    <!-- Tweede stap: Account Settings -->
+    <!-- Stap 2: Account Settings -->
     <mat-step [label]="'Account Settings'">
       <div mat-dialog-title>
         <h1>Account</h1>
@@ -81,6 +83,7 @@ import { AccountService } from '../../services/account.service';
           <mat-form-field>
             <mat-label>Type</mat-label>
             <select matNativeControl required [(ngModel)]="account.accounttype" name="accounttype">
+              <option value="" disabled selected>Choose type</option>
               <option value="Admin">Admin</option>
               <option value="User">User</option>
             </select>
@@ -115,6 +118,9 @@ import { AccountService } from '../../services/account.service';
             <mat-label>Repeat password</mat-label>
             <input matInput type="password" placeholder="Repeat password" [(ngModel)]="account.repeatPassword" name="repeatPassword" required>
             <mat-error *ngIf="!account.repeatPassword">Repeat password is required.</mat-error>
+            <mat-error *ngIf="account.repeatPassword !== account.password && account.repeatPassword">
+              Passwords do not match.
+            </mat-error>
           </mat-form-field>
         </div>
       </div>
@@ -124,17 +130,80 @@ import { AccountService } from '../../services/account.service';
       </div>
     </mat-step>
 
-    <!-- Derde stap: Finish -->
+    <!-- Stap 3: Privacybeleid + akkoord -->
+    <mat-step [label]="'Privacy Policy'">
+      <div mat-dialog-title>
+        <h1>Privacy Policy</h1>
+      </div>
+      <div mat-dialog-content class="content" style="max-height: 250px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; margin-bottom: 12px; font-size: 14px;">
+        <h2>Privacybeleid</h2>
+        <ol>
+          <li>
+            <strong>Inleiding</strong>
+            <p>Wij hechten veel waarde aan uw privacy en streven ernaar uw persoonsgegevens te beschermen en verantwoord te verwerken. Dit privacybeleid legt uit welke gegevens wij verzamelen, waarom we dat doen, en hoe we uw gegevens beschermen.</p>
+          </li>
+          <li>
+            <strong>Gegevens die wij verzamelen</strong>
+            <ul>
+              <li>Persoonlijke identificatiegegevens zoals naam, e-mailadres, en geboortedatum.</li>
+              <li>Accountinformatie zoals gebruikersnaam en wachtwoord.</li>
+              <li>Gebruiksgedrag op onze website en diensten.</li>
+            </ul>
+          </li>
+          <li>
+            <strong>Gebruik van gegevens</strong>
+            <p>Uw gegevens worden gebruikt om onze diensten te leveren, uw account te beheren, en u te informeren over updates en aanbiedingen.</p>
+          </li>
+          <li>
+            <strong>Delen van gegevens</strong>
+            <p>Wij delen uw gegevens nooit met derden zonder uw toestemming, tenzij dit wettelijk verplicht is.</p>
+          </li>
+          <li>
+            <strong>Beveiliging</strong>
+            <p>Wij nemen passende technische en organisatorische maatregelen om uw persoonsgegevens te beveiligen tegen verlies, misbruik en ongeautoriseerde toegang.</p>
+          </li>
+          <li>
+            <strong>Uw rechten</strong>
+            <p>U heeft het recht om uw persoonsgegevens in te zien, te corrigeren, te verwijderen, en bezwaar te maken tegen verwerking.</p>
+          </li>
+          <li>
+            <strong>Contact</strong>
+            <p>Voor vragen over dit privacybeleid kunt u contact opnemen via privacy&#64;webwizardz.nl</p>
+          </li>
+        </ol>
+        <p>Door gebruik te maken van onze diensten gaat u akkoord met dit privacybeleid.</p>
+      </div>
+      <mat-checkbox [(ngModel)]="privacyAccepted" name="privacyAccepted" required (change)="privacyTouched = true">
+        Ik ga akkoord met het <a href="/privacybeleid" target="_blank" rel="noopener noreferrer">privacybeleid</a>.
+      </mat-checkbox>
+      <mat-error *ngIf="!privacyAccepted && privacyTouched" style="color:red;">U moet akkoord gaan met het privacybeleid om door te gaan.</mat-error>
+
+      <div mat-dialog-actions class="actions">
+        <button mat-button matStepperPrevious>Back</button>
+        <button mat-button matStepperNext color="primary" [disabled]="!privacyAccepted">Next</button>
+      </div>
+    </mat-step>
+
+    <!-- Stap 4: Finish + Save -->
     <mat-step [label]="'Finish'">
       <div mat-dialog-title>
         <h1>Finish</h1>
       </div>
-      <div mat-dialog-content class="content">
-        <p>Review your information before saving.</p>
+      <!-- In stap 4 template, boven mat-dialog-actions -->
+<div style="margin-bottom: 16px; font-style: italic; color: #555;">
+  Please review your previous steps before saving.
+</div>
+
+
+      <div *ngIf="backendErrorMessage" style="color:red; margin-bottom: 12px;">
+        {{ backendErrorMessage }}
       </div>
+
       <div mat-dialog-actions class="actions">
         <button mat-button matStepperPrevious>Back</button>
-        <button mat-raised-button color="primary" (click)="saveAccount()" [disabled]="!isFormValid()">Save</button>
+        <button mat-raised-button color="primary" (click)="saveAccount()" [disabled]="!isFormValid() || !privacyAccepted">
+          Save
+        </button>
       </div>
     </mat-step>
 
@@ -178,14 +247,18 @@ export class EditEmployeeFormComponent {
   account: any;
   mode: 'edit' | 'create' = 'create';
 
+  backendErrorMessage: string | null = null;
+
+  privacyAccepted: boolean = false;
+  privacyTouched: boolean = false;
+
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any, 
-    private dialogRef: MatDialogRef<EditEmployeeFormComponent>, // Inject MatDialogRef
+    private dialogRef: MatDialogRef<EditEmployeeFormComponent>,
     private accountService: AccountService
   ) {
-    this.account = data?.account ? { ...data.account } : this.createEmptyAccount(); // laad bestaand account of leeg formulier
-  this.mode = data?.mode || 'create'; 
-
+    this.account = data?.account ? { ...data.account } : this.createEmptyAccount();
+    this.mode = data?.mode || 'create'; 
   }
 
   createEmptyAccount() {
@@ -197,41 +270,59 @@ export class EditEmployeeFormComponent {
       gender: '',
       username: '',
       password: '',
+      repeatPassword: '',
       accounttype: '',
     };
   }
 
   isFormValid(): boolean {
-    return this.account.firstName && this.account.lastName && this.account.email &&
-           this.account.accounttype && this.account.username && this.account.password &&
-           this.account.repeatPassword && this.account.birthdate && this.account.gender;
-  }
+  const passwordsMatch = this.account.password === this.account.repeatPassword;
+  return Boolean(
+    this.account.firstName &&
+    this.account.lastName &&
+    this.account.email &&
+    this.account.accounttype &&
+    this.account.username &&
+    this.account.password &&
+    this.account.repeatPassword &&
+    passwordsMatch &&
+    this.account.birthdate &&
+    this.account.gender
+  );
+}
+
 
   saveAccount(): void {
-    if (!this.isFormValid()) return;
-  
+    if (!this.isFormValid() || !this.privacyAccepted) {
+      this.privacyTouched = true;
+      return;
+    }
+
+    this.backendErrorMessage = null;
+
     this.account.birthdate = this.formatDate(this.account.birthdate);
-  
+
     const request$ = this.mode === 'edit'
-      ? this.accountService.updateAccount(this.account.id, this.account)
+      ? this.accountService.updateAccount(this.account.username, this.account)
       : this.accountService.createAccount(this.account);
-  
+
     request$.subscribe({
-      next: (response) => {
-        console.log('Success:', response);
+      next: () => {
         this.dialogRef.close(true);
       },
-      error: (err) => {
-        console.error('Error:', err);
-        this.dialogRef.close(false);
+      error: (error) => {
+        if (error.error && error.error.error) {
+          this.backendErrorMessage = error.error.error;
+        } else {
+          this.backendErrorMessage = 'Er is een fout opgetreden bij het opslaan.';
+        }
       }
     });
   }
-  
-  
+
   formatDate(date: any): string {
     const d = new Date(date);
-    if (isNaN(d.getTime())) return ''; // Ongeldige datum
+    if (isNaN(d.getTime())) return '';
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');

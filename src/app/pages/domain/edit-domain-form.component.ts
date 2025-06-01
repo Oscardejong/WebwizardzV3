@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialogModule } from '@angular/material/dialog';
+import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -16,10 +16,10 @@ import { FormsModule } from '@angular/forms';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { AccountService } from '../../services/account.service';
 import { DomainService } from '../../services/domain.service';
-import { MatDialogRef } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-edit-domain-form',
+  standalone: true,
   imports: [
     MatDialogModule, MatButtonModule, MatFormFieldModule, MatInputModule,
     MatDatepickerModule, MatNativeDateModule, MatRadioModule, MatIcon,
@@ -29,7 +29,7 @@ import { MatDialogRef } from '@angular/material/dialog';
   template: `
     <mat-horizontal-stepper [(selectedIndex)]="selectedStep" color="primary">
 
-      <!-- Stap 1 -->
+      <!-- Step 1 -->
       <mat-step [label]="'Choose account'">
         <div mat-dialog-title>
           <h1>Choose Account</h1>
@@ -49,7 +49,7 @@ import { MatDialogRef } from '@angular/material/dialog';
         </div>
       </mat-step>
 
-      <!-- Stap 2 -->
+      <!-- Step 2 -->
       <mat-step [label]="'Choose domain'">
         <div mat-dialog-title>
           <h1>Choose domain</h1>
@@ -69,13 +69,17 @@ import { MatDialogRef } from '@angular/material/dialog';
           <input type="text" matInput [value]="fullDomainName" readonly>
         </mat-form-field>
 
+        <mat-error *ngIf="errorMessage" style="display: block; margin-top: 8px;">
+          {{ errorMessage }}
+        </mat-error>
+
         <div mat-dialog-actions class="actions">
           <button mat-button matStepperPrevious>Back</button>
           <button mat-button matStepperNext color="primary">Next</button>
         </div>
       </mat-step>
 
-      <!-- Stap 3 -->
+      <!-- Step 3 -->
       <mat-step [label]="'Choose domain period'">
         <div mat-dialog-title>
           <h1>Domain Registration Period</h1>
@@ -118,28 +122,34 @@ import { MatDialogRef } from '@angular/material/dialog';
         </div>
       </mat-step>
 
-     <!-- Stap 4 -->
-<mat-step [label]="'Review & Save'">
-  <div mat-dialog-title>
-    <h1>Review Information</h1>
-  </div>
-  <div mat-dialog-content class="content">
-    <h3>Account</h3>
-    <p><strong>Username:</strong> {{ selectedUsername }}</p>
+      <!-- Step 4 -->
+      <mat-step [label]="'Review & Save'">
+        <div mat-dialog-title>
+          <h1>Review Information</h1>
+        </div>
+        <div mat-dialog-content class="content">
+          <h3>Account</h3>
+          <p><strong>Username:</strong> {{ selectedUsername }}</p>
 
-    <h3>Domain</h3>
-    <p><strong>Subdomain:</strong> {{ domainName }}</p>
-    <p><strong>Full Domain:</strong> {{ fullDomainName }}</p>
+          <h3>Domain</h3>
+          <p><strong>Subdomain:</strong> {{ domainName }}</p>
+          <p><strong>Full Domain:</strong> {{ fullDomainName }}</p>
 
-    <h3>Registration Period</h3>
-    <p><strong>Start:</strong> {{ startDate | date: 'mediumDate' }} {{ startTime }}</p>
-    <p><strong>End:</strong> {{ endDate | date: 'mediumDate' }} {{ endTime }}</p>
-  </div>
-  <div mat-dialog-actions class="actions">
-    <button mat-button matStepperPrevious>Back</button>
-    <button mat-raised-button color="primary" [disabled]="!isFormValid()" (click)="saveDomain()">Save</button>
-  </div>
-</mat-step>
+          <h3>Registration Period</h3>
+          <p><strong>Start:</strong> {{ startDate | date: 'mediumDate' }} {{ startTime }}</p>
+          <p><strong>End:</strong> {{ endDate | date: 'mediumDate' }} {{ endTime }}</p>
+        </div>
+
+        <div *ngIf="errorMessage" style="color:red; margin-bottom: 12px;">
+          {{ errorMessage }}
+        </div>
+
+        <div mat-dialog-actions class="actions">
+          <button mat-button matStepperPrevious>Back</button>
+          <button mat-raised-button color="primary" [disabled]="!isFormValid()" (click)="saveDomain()">Save</button>
+        </div>
+      </mat-step>
+
     </mat-horizontal-stepper>
   `,
   styles: `
@@ -170,14 +180,12 @@ export class EditDomainFormComponent {
   endDate: Date | null = null;
   endTime: string = '';
 
-  sslCertificate: boolean = false;
-  domainLock: boolean = false;
-  domainPrivacy: boolean = false;
+  errorMessage: string = '';
 
   constructor(
     private accountService: AccountService,
     private domainService: DomainService,
-    private dialogRef: MatDialogRef<EditDomainFormComponent>  // MatDialogRef toevoegen
+    private dialogRef: MatDialogRef<EditDomainFormComponent>
   ) {}
 
   ngOnInit() {
@@ -215,45 +223,43 @@ export class EditDomainFormComponent {
 
   saveDomain(): void {
     if (!this.isFormValid()) {
-      return; // Als het formulier niet geldig is, stoppen we hier
+      return;
     }
 
-   const fullDomainName = `${this.domainName}.webwizardz.com`;
+    this.errorMessage = ''; // Reset error
 
-  const domainData = {
-    domainname: fullDomainName.trim(), // De volledige domeinnaam
-    domainstatus: 'ONLINE',
-    startdatetime: this.startDate ? this.formatDate(this.startDate, this.startTime) : '',
-    enddatetime: this.endDate ? this.formatDate(this.endDate, this.endTime) : '',
-    username: this.selectedUsername || '',
-     
-  };
+    const fullDomainName = `${this.domainName}.webwizardz.nl`;
 
-    // Roep de createDomain methode van de DomainService aan
+    const domainData = {
+      domainname: fullDomainName.trim(),
+      domainstatus: 'OFFLINE',
+      startdatetime: this.startDate ? this.formatDate(this.startDate, this.startTime) : '',
+      enddatetime: this.endDate ? this.formatDate(this.endDate, this.endTime) : '',
+      username: this.selectedUsername || '',
+    };
+
     this.domainService.createDomain(domainData).subscribe({
       next: (response) => {
-        console.log('Domain saved:', response);  // Log succes in de console
-        this.dialogRef.close();  // Sluit de dialoog na succesvolle opslag
+        console.log('Domain saved:', response);
+        this.dialogRef.close();
       },
       error: (error) => {
-        console.error('Error saving domain:', error);  // Log eventuele fouten
-        // Je kunt hier eventueel een gebruikersvriendelijke foutmelding tonen.
+        console.error('Error saving domain:', error);
+        if (error.error && error.error.error) {
+          this.errorMessage = error.error.error;
+        } else {
+          this.errorMessage = 'Er is een fout opgetreden bij het opslaan van het domein.';
+        }
       }
     });
   }
 
-
- formatDate(date: Date, time: string): string {
-  const d = new Date(date);
-  if (isNaN(d.getTime()) || !time) return ''; // Ongeldige invoer
-
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-
-  // Verwacht tijdformaat is "HH:mm"
-  return `${year}-${month}-${day}T${time}`;
-}
-
-  
+  formatDate(date: Date, time: string): string {
+    const d = new Date(date);
+    if (isNaN(d.getTime()) || !time) return '';
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}T${time}`;
+  }
 }

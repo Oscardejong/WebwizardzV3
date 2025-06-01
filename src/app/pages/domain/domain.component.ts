@@ -12,6 +12,7 @@ import { EditDomainFormComponent } from './edit-domain-form.component';
 import { ConfirmDeleteDialogComponent } from './confirm-delete-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DialogRef } from '@angular/cdk/dialog';
+import { UpdateDomainDialogComponent } from './edit-dialog-domain.component';
 
 @Component({
   selector: 'domain',
@@ -25,7 +26,8 @@ import { DialogRef } from '@angular/cdk/dialog';
     MatInputModule,
     FormsModule,
     EditDomainFormComponent,
-    CommonModule
+    CommonModule,
+    UpdateDomainDialogComponent
   ],
   template: `
     <div class="header">
@@ -102,7 +104,7 @@ import { DialogRef } from '@angular/cdk/dialog';
         <ng-container matColumnDef="action">
           <th mat-header-cell *matHeaderCellDef></th>
           <td mat-cell *matCellDef="let element">
-            <button mat-button class="action-button" (click)="OpenAddEditDomainForm(element)">
+            <button mat-button class="action-button" (click)="openUpdateDomainDialog(element)">
               <mat-icon class="action-icon-edit">edit</mat-icon>
             </button>
             <button mat-button class="action-button" (click)="openDeleteDialog(element)">
@@ -229,6 +231,41 @@ export class DomainComponent implements OnInit {
     return this.domains;
   }
 
+openUpdateDomainDialog(domain: Domain) {
+  const dialogRef = this._dialog.open(UpdateDomainDialogComponent, {
+    width: '400px',
+    data: {
+      start: this.toDatetimeLocalString(domain.startdatetime),
+      end: this.toDatetimeLocalString(domain.enddatetime)
+    }
+  });
+
+  dialogRef.afterClosed().subscribe(result => {
+    if (result) {
+      const updated: Domain = {
+        ...domain,
+        startdatetime: result.start,
+        enddatetime: result.end
+      };
+
+      this.domainService.updateDomain(domain.domainname, updated).subscribe({
+        next: () => {
+          this.snackBar.open('Domein-periode bijgewerkt', 'OK', { duration: 2000 });
+          this.refreshDomains();
+        },
+        error: () => {
+          this.snackBar.open('Bijwerken mislukt', 'OK', { duration: 3000 });
+        }
+      });
+    }
+  });
+}
+
+
+
+
+
+
   openDeleteDialog(element: Domain): void {
     const dialogRef = this._dialog.open(ConfirmDeleteDialogComponent, {
       width: '400px',
@@ -244,6 +281,8 @@ export class DomainComponent implements OnInit {
     });
   }
 
+  
+
   deleteItem(domain: Domain): void {
     this.domainService.deleteDomain(domain.domainname).subscribe({
       next: () => {
@@ -256,4 +295,12 @@ export class DomainComponent implements OnInit {
       }
     });
   }
+
+  private toDatetimeLocalString(date: string | Date): string {
+  const d = new Date(date);
+  // corrigeer tijdzone-offset zodat lokale tijd klopt
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().slice(0, 16);          // "YYYY-MM-DDTHH:MM"
+}
+
 }

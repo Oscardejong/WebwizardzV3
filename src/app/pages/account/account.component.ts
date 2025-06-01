@@ -10,6 +10,8 @@ import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { ConfirmDeleteDialogComponent } from './confirm-delete-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { UpdateUserDialogComponent } from './edit-dialog-account.component';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'account',
@@ -18,7 +20,8 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     MatFormFieldModule,  
     MatInputModule,      
     FormsModule,
-    ConfirmDeleteDialogComponent,          
+    ConfirmDeleteDialogComponent,        
+    CommonModule  
   ],
   template: `
   <div class="header">
@@ -67,7 +70,8 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 
       <ng-container matColumnDef="birthDate">
         <th mat-header-cell *matHeaderCellDef> Birth Date </th>
-        <td mat-cell *matCellDef="let element">{{ element.birthDate }}</td>
+        <td mat-cell *matCellDef="let element">{{ element.birthDate | date:'yyyy-MM-dd' }}</td>
+
       </ng-container>
 
       <ng-container matColumnDef="gender">
@@ -85,7 +89,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
       <ng-container matColumnDef="action">
         <th mat-header-cell *matHeaderCellDef></th>
         <td mat-cell *matCellDef="let element">
-          <button mat-button class="action-button" (click)="OpenAddEditEmployeeForm(element)">
+          <button mat-button class="action-button" (click)="openUpdateUserDialog(element)">
             <mat-icon class="action-icon-edit">edit</mat-icon>
           </button>
           <button mat-button class="action-button" (click)="openDeleteDialog(element)">
@@ -192,6 +196,41 @@ OpenAddEditEmployeeForm(account?: Account) {
     }
   });
 }
+openUpdateUserDialog(account: Account) {
+  const dialogRef = this._dialog.open(UpdateUserDialogComponent, {
+    width: '400px',
+    data: { 
+      firstName: account.firstName,
+      lastName: account.lastName,
+      birthdate: account.birthDate,
+      gender: account.gender
+    }
+  });
+
+  dialogRef.afterClosed().subscribe(result => {
+    if (result) {
+      const updatedAccount: Account = {
+        ...account,
+        firstName: result.firstName,
+        lastName: result.lastName,
+        birthDate: result.birthdate,
+        gender: result.gender
+      };
+
+      this.accountService.updateAccount(updatedAccount.username, updatedAccount).subscribe({
+        next: () => {
+          this.snackBar.open(`Account van ${updatedAccount.username} is bijgewerkt`, 'OK', { duration: 2000 });
+          this.refreshAccounts();
+        },
+        error: () => {
+          this.snackBar.open(`Kon account ${updatedAccount.username} niet bijwerken`, 'OK', { duration: 3000 });
+        }
+      });
+    }
+  });
+}
+
+
 
 
 filterAccounts() {

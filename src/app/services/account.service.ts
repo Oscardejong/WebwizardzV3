@@ -26,6 +26,7 @@ private apiUrl = `${environment.apiBaseUrl}/api/account`;
 private accountCustomerUrl = `${environment.apiBaseUrl}/api/account-customer`;
 
 private accountDeleteUrl = `${environment.apiBaseUrl}/api/account/:username`;
+private accountUpdateUrl = `${environment.apiBaseUrl}/api/account/:username`;
 
   addedAccounts: Account[] = [
   ];
@@ -60,21 +61,22 @@ private accountDeleteUrl = `${environment.apiBaseUrl}/api/account/:username`;
     );
   }
 
-  updateAccount(username: string, updatedAccount: Partial<Account>): Observable<any> {
-    const url = `${this.apiUrl}/${encodeURIComponent(username)}`;
-    console.log(`Sending PUT request to: ${url}`, updatedAccount);
-  
-    return this.http.put(url, updatedAccount).pipe(
-      tap(response => {
-        console.log(`Account '${username}' successfully updated:`, response);
-      }),
-      catchError(error => {
-        console.error(`Error updating account '${username}':`, error);
-        return throwError(() => error);
-      })
-    );
-  }
-  
+ updateAccount(username: string, updatedAccount: Partial<Account>): Observable<any> {
+  // Bouw de URL met username, let op dat je het encodeert
+  const url = `${this.apiUrl}/${encodeURIComponent(username)}`;
+  console.log(`Sending PUT request to: ${url}`, updatedAccount);
+
+  // Verstuur PUT request met partial account data
+  return this.http.put(url, updatedAccount).pipe(
+    tap(response => {
+      console.log(`Account '${username}' successfully updated:`, response);
+    }),
+    catchError(error => {
+      console.error(`Error updating account '${username}':`, error);
+      return throwError(() => error);
+    })
+  );
+}
 
   deleteAccount(username: string): Observable<any> {
     const url = `${this.apiUrl}/${encodeURIComponent(username)}`;
