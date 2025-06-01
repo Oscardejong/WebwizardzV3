@@ -28,7 +28,6 @@ jobs:
       - name: Strip sourcemaps (kleinere zip)
         run: find dist -name "*.map" -type f -delete
 
-      # → zip alleen de definitieve build-output, géén app_offline.htm
       - name: Create release.zip
         run: |
           cd dist
@@ -64,19 +63,16 @@ jobs:
           tenant-id:      ${{ secrets.AZUREAPPSERVICE_TENANTID_C2B0ABEA92014C4DBC8FD7F48134F1EA }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_930B37F0FD8B4C76A7862CF01A607428 }}
 
-      # 1️⃣  App kort uitzetten om file-locks te voorkomen
       - name: Stop Web App
-        run: az webapp stop --name Webwizardz-Frontend --resource-group <YOUR-RG>
+        run: az webapp stop --name Webwizardz-Frontend --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }}
 
-      # 2️⃣  Deploy met OneDeploy (zipDeploy)
       - name: Deploy release.zip
         id: deploy
         uses: azure/webapps-deploy@v3
         with:
           app-name: Webwizardz-Frontend
           slot-name: Production
-          package: release.zip   # zip wordt rechtstreeks geüpload
+          package: release.zip
 
-      # 3️⃣  App weer opstarten
       - name: Start Web App
-        run: az webapp start --name Webwizardz-Frontend --resource-group <YOUR-RG>
+        run: az webapp start --name Webwizardz-Frontend --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }}
