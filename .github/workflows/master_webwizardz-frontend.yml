@@ -13,25 +13,27 @@ jobs:
       contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up Node.js version
         uses: actions/setup-node@v3
         with:
           node-version: '22.x'
 
-      - name: Install and build
+      - name: Install dependencies and build
         run: |
-          npm install
+          npm ci
           npm run build
 
-      - name: Prepare zip with app_offline.htm
+      - name: Remove unnecessary files (e.g. source maps)
         run: |
-          echo "<h1>Deployment in progress</h1>" > app_offline.htm
-          mkdir deploy
-          cp -r dist/* deploy/
-          cp app_offline.htm deploy/
-          cd deploy && zip -r ../release.zip . && cd ..
+          find dist -name "*.map" -type f -delete
+
+      - name: Prepare deployment zip with app_offline.htm
+        run: |
+          echo "<h1>Deployment in progress</h1>" > dist/app_offline.htm
+          cd dist && zip -r ../release.zip . && cd ..
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
