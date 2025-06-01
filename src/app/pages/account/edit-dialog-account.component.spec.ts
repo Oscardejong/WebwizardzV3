@@ -85,10 +85,18 @@ describe('UpdateUserDialogComponent', () => {
     expect(component.data.firstName).toBe('Jane');
   });
 
-  it('should update gender when radio button clicked', () => {
-    const femaleRadio = fixture.debugElement.queryAll(By.css('mat-radio-button'))[1];
-    femaleRadio.triggerEventHandler('click', null);
+it('should update gender when radio button clicked', () => {
+  const femaleInput: HTMLInputElement | null = fixture.nativeElement.querySelector('input[type="radio"][value="f"]');
+  expect(femaleInput).toBeTruthy('female radio input not found');
+
+  if (femaleInput) {
+    femaleInput.checked = true;
+    femaleInput.dispatchEvent(new Event('change'));
     fixture.detectChanges();
+
     expect(component.data.gender).toBe('f');
-  });
+  }
+});
+
+
 });
