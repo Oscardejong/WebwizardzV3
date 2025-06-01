@@ -25,11 +25,13 @@ jobs:
           npm install
           npm run build
 
-      - name: Add temporary app_offline.htm to dist
-        run: echo "<h1>Deployment in progress</h1>" > dist/app_offline.htm
-
-      - name: Zip only the build output (dist/)
-        run: cd dist && zip -r ../release.zip . && cd ..
+      - name: Prepare zip with app_offline.htm
+        run: |
+          echo "<h1>Deployment in progress</h1>" > app_offline.htm
+          mkdir deploy
+          cp -r dist/* deploy/
+          cp app_offline.htm deploy/
+          cd deploy && zip -r ../release.zip . && cd ..
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
