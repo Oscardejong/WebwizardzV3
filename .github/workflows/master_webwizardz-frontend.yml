@@ -62,7 +62,7 @@ jobs:
         with:
           client-id:      ${{ secrets.AZUREAPPSERVICE_CLIENTID_CFC43901334344C88848C741C7743132 }}
           tenant-id:      ${{ secrets.AZUREAPPSERVICE_TENANTID_C2B0ABEA92014C4DBC8FD7F48134F1EA }}
-          subscription-id:${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_930B37F0FD8B4C76A7862CF01A607428 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_930B37F0FD8B4C76A7862CF01A607428 }}
 
       # 1️⃣  App kort uitzetten om file-locks te voorkomen
       - name: Stop Web App
